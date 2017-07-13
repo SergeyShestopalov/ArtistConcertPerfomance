@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{title}}</title>
+    <meta charset="utf-8" />
+    <link href='/stylesheets/style.css' rel='stylesheet' type='text/css'>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+
+</head>
+<body>
+<header class="header">
+    <div class="login">
+        <form action="/admin/artists">
+            <button type="submit" class="blue-button">Login</button>
+        </form>
+    </div>
+</header>
+<br class="field">
+<div class="toolbar">
+    <form name="artist" method="GET" action="/artists">
+        <button type="submit" class="blue-button-menu">Artist</button>
+    </form>
+    <form name="concertplace" method="GET" action="/concertplace">
+        <button type="submit" class="blue-button-menu">Concert place</button>
+    </form>
+    <form name="performance" method="GET" action="/performance">
+        <button type="submit" class="blue-button-menu">Performance</button>
+    </form>
+</div>
+
+</div>
+<footer></footer>
+</body>
+<html>
+
+

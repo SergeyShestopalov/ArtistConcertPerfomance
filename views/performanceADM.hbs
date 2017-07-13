@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{title}}</title>
+    <meta charset="utf-8" />
+    <link href='/stylesheets/style.css' rel='stylesheet' type='text/css'>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+</head>
+<body>
+<header class="header">
+    <div class="login">
+        <form action="/">
+            <button type="submit" class="blue-button">Go out</button>
+        </form>
+    </div>
+</header>
+<br class="field">
+<div class="toolbar">
+    <form name="artist" method="GET" action="/admin/artists">
+        <button type="submit" class="blue-button-menu">Artist</button>
+    </form>
+    <form name="concertplace" method="GET" action="/admin/concertplace">
+        <button type="submit" class="blue-button-menu">Concert place</button>
+    </form>
+    <form name="performance" method="GET" action="/admin/performance">
+        <button type="submit" class="blue-button-menu">Performance</button>
+    </form>
+</div>
+<div>
+    <form name="addPerformance" id="addPerformance" class="formAdd">
+        <input type="hidden" name="id" value="0" />
+        <div class="form-group">
+            <label for="date">Date:</label>
+            <input class="form-control" name="date" />
+        </div>
+        <div class="form-group" id="listArtists">
+                <label for="artists">Artists:</label>
+                <select id="listArtistsSelect" name="listArtistsSelect[]" multiple="multiple">
+                    <option>Select artist</option>
+                </select>
+        </div>
+        <div class="form-group" id="listPlace">
+            <label for="concert-place">Concert place:</label>
+            <select id="listPlaceSelect" name="concert-place">
+                <option>Select concert place</option>
+            </select>
+        </div>
+        <div class="panel-body">
+            <button type="submit" class="blue-button-add" id="add">Add</button>
+        </div>
+    </form>
+</div>
+{{#if visible2}}
+    <div class="table-one">
+        <table id="table-of-performance" class="table-condensed" style="width:50%;">
+            <thead><tr><th>Data</th><th>Artists</th><th>Concert place</th></tr></thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+{{/if}}
+</div>
+<footer></footer>
+</body>
+<html>
+
+<script>
+
+    function GetArtistsForList() {
+        $.ajax({
+            url:"/getartist",
+            type: "GET",
+            contentType: "application/json",
+            success: function (performance) {
+                var rows = "";
+                $.each(performance, function (index, performance) {
+                    rows += rowList(performance);
+                });
+                $('#listArtists > select').append(rows);
+            }
+        })
+    }
+
+    function GetPerformance() {
+        $.ajax({
+            url:"/getperformance",
+            type: "GET",
+            contentType: "application/json",
+            success: function (performance) {
+                var rows = "";
+                $.each(performance, function (index, performance) {
+                    rows += row(performance);
+                });
+                $('#table-of-performance > tbody').append(rows);
+            }
+        })
+    }
+
+    function GetPlaceForList() {
+        $.ajax({
+            url:"/getconcertplace",
+            type: "GET",
+            contentType: "application/json",
+            success: function (performance) {
+                var rows = "";
+                $.each(performance, function (index, performance) {
+                    rows += rowListPlace(performance);
+                });
+                $('#listPlace > select').append(rows);
+            }
+        })
+    }
+
+    function AddPerformance(date, artists, concert_place) {
+        $.ajax({
+            url: "/admin/performance",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({
+                date: date,
+                artists: artists,
+                concert_place: concert_place
+            }),
+            success: function (user) {
+                reset();
+
+                // $("table tbody").append(row(user));
+            }
+        })
+    }
+
+    function reset() {
+        var form = document.forms["addPerformance"];
+        form.reset();
+        form.elements["id"].value = 0;
+    }
+
+    var rowList = function (performance) {
+
+        return "<option value='" + performance.id_artist + "'>" + performance.name +" "+ performance.surname +"</option>";
+    };
+
+    GetArtistsForList();
+
+    var rowListPlace = function (performance) {
+        return "<option value='" + performance.id_place + "'>" + performance.address + "</option>";
+    };
+
+    GetPlaceForList();
+
+    var row = function (performance) {
+        return "<tr><td>" + performance.date + "</td>" +
+                "<td>" + performance.artists + "</td><td>" + performance.address + "</td></tr>";
+    };
+
+    $(document.forms['performance']).on('submit', GetPerformance());
+
+    $("#add").click(function(){
+        location.reload();
+    });
+
+    $(document.forms['addPerformance']).submit(function (e) {
+        e.preventDefault();
+        var id = this.elements["id"].value;
+        var date = this.elements["date"].value;
+        var artists = $("#listArtistsSelect").val();
+        var concert_place = this.elements["concert-place"].value;
+        console.log(artists);
+        if(id == 0){
+            AddPerformance(date, artists, concert_place);
+        }
+
+    });
+
+</script>

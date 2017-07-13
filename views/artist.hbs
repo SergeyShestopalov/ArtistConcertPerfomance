@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{title}}</title>
+    <meta charset="utf-8" />
+    <link href='/stylesheets/style.css' rel='stylesheet' type='text/css'>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+</head>
+<body>
+<header class="header">
+    <div class="login">
+        <form action="/admin/artists">
+            <button type="submit" class="blue-button">Login</button>
+        </form>
+    </div>
+</header>
+<br class="field">
+<div class="toolbar">
+    <form name="artist" method="GET" action="/artists">
+            <button type="submit" class="blue-button-menu">Artist</button>
+    </form>
+    <form name="concertplace" method="GET" action="/concertplace">
+            <button type="submit" class="blue-button-menu">Concert place</button>
+    </form>
+    <form name="performance" method="GET" action="/performance">
+            <button type="submit" class="blue-button-menu">Performance</button>
+    </form>
+</div>
+{{#if visible}}
+    <div class="table-one">
+        <table id = 'table-of-artists'  class="table-condensed" style="width:50%;">
+            <thead><tr><th>Name</th><th>Surname</th><th>Age</th></tr></thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+{{/if}}
+
+</div>
+<footer></footer>
+</body>
+<html>
+
+<script>
+    function GetArtist() {
+        $.ajax({
+            url:"/getartist",
+            type: "GET",
+            contentType: "application/json",
+            success: function (artist) {
+                var rows = "";
+                $.each(artist, function (index, artist) {
+                    rows += row(artist);
+                });
+                $('#table-of-artists > tbody').append(rows);
+            }
+        })
+    }
+    var row = function (artist) {
+        console.log(artist);
+        return "<tr><td>" + artist.name + "</td>" +
+                "<td>" + artist.surname + "</td><td>" + artist.age + "</td></tr>";
+    };
+    $(document.forms['artist']).on('submit', GetArtist());
+</script>

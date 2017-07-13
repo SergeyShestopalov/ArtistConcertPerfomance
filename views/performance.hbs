@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{title}}</title>
+    <meta charset="utf-8" />
+    <link href='/stylesheets/style.css' rel='stylesheet' type='text/css'>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+
+</head>
+<body>
+<header class="header">
+    <div class="login">
+        <form action="/admin/artists">
+            <button type="submit" class="blue-button">Login</button>
+        </form>
+    </div>
+</header>
+<br class="field">
+<div class="toolbar">
+    <form name="artist" method="GET" action="/artists">
+        <button type="submit" class="blue-button-menu">Artist</button>
+    </form>
+    <form name="concertplace" method="GET" action="/concertplace">
+        <button type="submit" class="blue-button-menu">Concert place</button>
+    </form>
+    <form name="performance" method="GET" action="/performance">
+        <button type="submit" class="blue-button-menu">Performance</button>
+    </form>
+</div>
+
+{{#if visible2}}
+    <div class="table-one">
+        <table id="table-of-performance" class="table table-condensed table-striped table-bordered" style="width:50%;">
+            <thead><tr><th>Data</th><th>Artists</th><th>Concert place</th></tr></thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+{{/if}}
+</div>
+<footer></footer>
+</body>
+<html>
+
+<script>
+    function GetPerformance() {
+        $.ajax({
+            url:"/getperformance",
+            type: "GET",
+            contentType: "application/json",
+            success: function (performance) {
+                var rows = "";
+                $.each(performance, function (index, performance) {
+                    rows += row(performance);
+                });
+                $('#table-of-performance > tbody').append(rows);
+            }
+        })
+    }
+
+    var row = function (performance) {
+        console.log(performance);
+        return "<tr><td>" + performance.date + "</td>" +
+                "<td>" + performance.artists + "</td><td>" + performance.address + "</td></tr>";
+    };
+
+
+    $(document.forms['performance']).on('submit', GetPerformance());
+</script>

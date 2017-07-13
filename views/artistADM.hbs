@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{title}}</title>
+    <meta charset="utf-8" />
+    <link href='/stylesheets/style.css' rel='stylesheet' type='text/css'>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+</head>
+<body>
+<header class="header">
+    <div class="login">
+        <form action="/">
+            <button type="submit" class="blue-button">Go out</button>
+        </form>
+    </div>
+</header>
+<br class="field">
+<div class="toolbar">
+    <form name="artist" method="GET" action="/admin/artists">
+        <button type="submit" class="blue-button-menu">Artist</button>
+    </form>
+    <form name="concertplace" method="GET" action="/admin/concertplace">
+        <button type="submit" class="blue-button-menu">Concert place</button>
+    </form>
+    <form name="perfomanse" method="GET" action="/admin/performance">
+        <button type="submit" class="blue-button-menu">Performance</button>
+    </form>
+</div>
+{{#if visible}}
+    <div>
+        <form name="addArtist" id="addArtist" class="formAdd">
+            <input type="hidden" name="id" value="0" />
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input class="form-control" name="name" id = "name"/>
+            </div>
+            <div class="form-group">
+                <label for="surname">Surname:</label>
+                <input class="form-control" name="surname" id = "surname"/>
+            </div>
+            <div class="form-group">
+                <label for="age">Age:</label>
+                <input class="form-control" name="age" id = "age"/>
+            </div>
+            <div class="panel-body">
+                <button type="submit" class="blue-button-add" >Add</button>
+            </div>
+        </form>
+    </div>
+    <div class="table-one">
+        <table id = 'table-of-artists'  class="table-condensed" style="width:50%;">
+            <thead><tr><th>Name</th><th>Surname</th><th>Age</th><th>Edit</th></tr></thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+{{/if}}
+
+</div>
+<footer></footer>
+</body>
+<html>
+
+<script>
+
+    function GetArtist() {
+        $.ajax({
+            url:"/getartist",
+            type: "GET",
+            contentType: "application/json",
+            success: function (artist) {
+                var rows = "";
+                $.each(artist, function (index, artist) {
+                    rows += row(artist);
+                });
+                $('#table-of-artists > tbody').append(rows);
+            }
+        })
+    }
+    function GetArtistId(id) {
+        $.ajax({
+            url: "/admin/artists/"+id,
+            type: "GET",
+            contentType: "application/json",
+            success: function (artist) {
+                var form = document.forms["addArtist"];
+                form.elements["id"].value = artist.id_artist;
+                form.elements["name"].value = artist.name;
+                form.elements["surname"].value = artist.surname;
+                form.elements["age"].value = artist.age;
+            }
+        });
+    }
+    var row = function (artist) {
+        console.log(artist);
+        return "<tr id='" + artist.id_artist + "'><td>" + artist.name + "</td>" +
+                "<td>" + artist.surname + "</td><td>" + artist.age + "</td>"+
+                "<td><a class='editLink' data-id='" + artist.id_artist + "'>Edit</a> | " +
+                "<a class='removeLink' data-id='" + artist.id_artist + "'>Delete</a></td></tr>";
+    };
+    function reset() {
+        var form = document.forms["addArtist"];
+        form.reset();
+        form.elements["id"].value = 0;
+    }
+    
+    function AddArtist(artistName, artistSurname, artistAge) {
+        $.ajax({
+            url: "/admin/artists",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({
+                name: artistName,
+                surname: artistSurname,
+                age: artistAge
+            }),
+            success: function (user) {
+                reset();
+                $("table tbody").append(row(user));
+            }
+        })
+    }
+    $(document.forms['artist']).on('submit', GetArtist());
+    $(document.forms['addArtist']).submit(function (e) {
+        e.preventDefault();
+        var id = this.elements["id"].value;
+        var name = this.elements["name"].value;
+        var surname = this.elements["surname"].value;
+        var age = this.elements["age"].value;
+        if(id == 0){
+            AddArtist(name, surname, age);
+        }else {
+            EditActor(id, name, surname, age);
+        }
+
+    });
+
+    function EditActor(idArtist ,nameArtist, surnameArtist, ageArtist) {
+        $.ajax({
+            url: "/admin/artists",
+            contentType: "application/json",
+            method: "PUT",
+            data: JSON.stringify({
+                id: idArtist,
+                name: nameArtist,
+                surname: surnameArtist,
+                age: ageArtist
+            }),
+            success: function (user) {
+                reset();
+                console.log(user);
+                $("tr[id='" + user.id_artist + "']").replaceWith(row(user));
+            }
+        })
+    }
+
+    function DeleteUser(id) {
+        $.ajax({
+            url: "admin/artists/"+id,
+            contentType: "application/json",
+            method: "DELETE",
+            success: function (artist) {
+                console.log(artist);
+                $("tr[id='" + artist.id_artist + "']").remove();
+            }
+        })
+    }
+
+    $("body").on("click", ".editLink", function () {
+        var id = $(this).data("id");
+        GetArtistId(id);
+    });
+
+    $("body").on("click", ".removeLink", function () {
+        var id = $(this).data("id");
+        DeleteUser(id);
+    });
+</script>

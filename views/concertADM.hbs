@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{title}}</title>
+    <meta charset="utf-8" />
+    <link href='/stylesheets/style.css' rel='stylesheet' type='text/css'>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+
+</head>
+<body>
+<header class="header">
+    <div class="login">
+        <form action="/">
+            <button type="submit" class="blue-button">Go out</button>
+        </form>
+    </div>
+</header>
+<br class="field">
+<div class="toolbar">
+    <form name="artist" method="GET" action="/admin/artists">
+        <button type="submit" class="blue-button-menu">Artist</button>
+    </form>
+    <form name="concertplace" method="GET" action="/admin/concertplace">
+        <button type="submit" class="blue-button-menu">Concert place</button>
+    </form>
+    <form name="perfomanse" method="GET" action="/admin/performance">
+        <button type="submit" class="blue-button-menu">Performance</button>
+    </form>
+</div>
+<div>
+    <form name="addConcert" id="addPerformance" class="formAdd">
+        <input type="hidden" name="id" value="0" />
+        <div class="form-group">
+            <label for="name">Address:</label>
+            <input class="form-control" name="address" />
+        </div>
+        <div class="form-group">
+            <label for="age">Seating count:</label>
+            <input class="form-control" name="seating-count" />
+        </div>
+        <div class="form-group">
+            <label for="age">Type:</label>
+            <input class="form-control" name="type" />
+        </div>
+        <div class="panel-body">
+            <button type="submit" class="blue-button-add" >Add</button>
+        </div>
+    </form>
+</div>
+{{#if visible1}}
+    <div class="table-one">
+        <table id = "table-of-concert-place" class="table-condensed" style="width:50%;">
+            <thead><tr><th>Address</th><th>Seating count</th><th>Type</th><th>Edit</th></tr></thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+{{/if}}
+</div>
+<footer></footer>
+</body>
+<html>
+
+<script>
+
+    function GetConcertPlace() {
+        $.ajax({
+            url:"/getconcertplace",
+            type: "GET",
+            contentType: "application/json",
+            success: function (concert) {
+                var rows = "";
+                $.each(concert, function (index, concert) {
+                    rows += row(concert);
+                });
+                $('#table-of-concert-place > tbody').append(rows);
+            }
+        })
+    }
+
+    function GetConcertId(id) {
+        $.ajax({
+            url: "/admin/concertplace/"+id,
+            type: "GET",
+            contentType: "application/json",
+            success: function (concert) {
+                var form = document.forms["addConcert"];
+                form.elements["id"].value = concert.id_place;
+                form.elements["address"].value = concert.address;
+                form.elements["seating-count"].value = concert.seatingcount;
+                form.elements["type"].value = concert.type;
+            }
+        });
+    }
+
+    var row = function (concert) {
+        //console.log(concert);
+        return "<tr id='" + concert.id_place + "'><td>" + concert.address + "</td>" +
+                "<td>" + concert.seatingcount + "</td><td>" + concert.type + "</td>"+
+                "<td><a class='editLink' data-id='" + concert.id_place + "'>Edit</a> | " +
+                "<a class='removeLink' data-id='" + concert.id_place + "'>Delete</a></td></tr>";
+    };
+
+    function reset() {
+        var form = document.forms["addConcert"];
+        form.reset();
+        form.elements["id"].value = 0;
+    }
+
+    function AddConcertPlace(addressConcert, seatingCountConcert, typeConcert) {
+        $.ajax({
+            url: "/admin/concertplace",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({
+                address: addressConcert,
+                seatingCount: seatingCountConcert,
+                type: typeConcert
+            }),
+            success: function (user) {
+                reset();
+                $("table tbody").append(row(user));
+            }
+        })
+    }
+
+    $(document.forms['concertplace']).on('submit', GetConcertPlace());
+
+    $(document.forms['addConcert']).submit(function (e) {
+        e.preventDefault();
+        var id = this.elements["id"].value;
+        var address = this.elements["address"].value;
+        var seatingCount = this.elements["seating-count"].value;
+        var type = this.elements["type"].value;
+        if(id == 0){
+            AddConcertPlace(address, seatingCount, type);
+        }else {
+            EditConcertPlace(id, address, seatingCount, type);
+        }
+    });
+
+    function EditConcertPlace(idConcert ,addressConcert, seatingCountConcert, typeConcert) {
+        $.ajax({
+            url: "/admin/concertplace",
+            contentType: "application/json",
+            method: "PUT",
+            data: JSON.stringify({
+                id: idConcert,
+                address: addressConcert,
+                seatingcount: seatingCountConcert,
+                type: typeConcert
+            }),
+            success: function (concert) {
+                reset();
+                $("tr[id='" + concert.id_place + "']").replaceWith(row(concert));
+            }
+        })
+    }
+
+    function DeleteConcertPlace(id) {
+        $.ajax({
+            url: "admin/concertplace/"+id,
+            contentType: "application/json",
+            method: "DELETE",
+            success: function (concert) {
+                console.log(concert);
+                $("tr[id='" + concert.id_place + "']").remove();
+            }
+        })
+    }
+
+    $("body").on("click", ".editLink", function () {
+        var id = $(this).data("id");
+        GetConcertId(id);
+    });
+
+    $("body").on("click", ".removeLink", function () {
+        var id = $(this).data("id");
+        DeleteConcertPlace(id);
+    });
+
+</script>
